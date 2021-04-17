@@ -3,8 +3,6 @@
 from html.parser import HTMLParser
 from datetime import datetime
 import urllib.request
-import threading
-from pubsub import pub
 
 class WeatherScraper(HTMLParser):
     """This class contains functions to parse the html"""
