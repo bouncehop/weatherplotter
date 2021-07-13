@@ -18,8 +18,8 @@ class WeatherScraper(HTMLParser):
             self.temp_list = []
             self.date_string = ""
             self.count = 0
-            self.month_num = 8
-            self.year_num = 2017
+            self.month_num = datetime.now().month
+            self.year_num = datetime.now().year
             self.stop_flag = True
             self.not_last = True
         except Exception as e:
@@ -73,26 +73,36 @@ class WeatherScraper(HTMLParser):
         except Exception as e:
             print(f"WeatherScraper::handle_data::{e}")
 
-    def scrape_start(self):
-        """Tasdasdasda"""
+    def scrape_start(self, date_string=None):
+        """This method scrapes the HTML data from the weather website"""
         url_part = 'https://climate.weather.gc.ca/climate_data/daily_data_e.html?StationID=27174&timeframe=2&StartYear=1840&EndYear=2021&Day=4&'
+        fin_year = None
+        fin_month = None
+
+        if date_string is not None:
+            fin_year = int(date_string[:4])
+            fin_month = int(date_string[5:7])
+        
         while self.not_last:
             try:
                 url_string = f'{url_part}Year={self.year_num}&Month={self.month_num}'
                 with urllib.request.urlopen(url_string) as response:
                     html = str(response.read())
                 self.feed(html)
-                print(url_string)
+                print(f"Collecting Weather Data - Year: {self.year_num}, Month: {self.month_num}")
                 self.stop_flag = True
-                self.not_last = False
 
+                if fin_year == self.year_num and fin_month == self.month_num:
+                    self.not_last = False
+                    
                 if self.month_num != 1:
                     self.month_num -= 1
                 else:
                     self.month_num = 12
                     self.year_num -= 1
+                
             except Exception as e:
-                print(f"WeatherScraper::test_method::{e}")
+                print(f"WeatherScraper::scrape_start::{e}")
 
 
     def parse_table(self, data):
@@ -109,7 +119,7 @@ class WeatherScraper(HTMLParser):
             print(f"WeatherScraper::parse_table::{e}")
 
     def add_dictionary(self):
-        """Tasdasdasda"""
+        """This methods add the temperatures to the dictionary"""
         try:
             if self.stop_flag and self.temp_list:
                 daily_temp = {}
@@ -118,12 +128,6 @@ class WeatherScraper(HTMLParser):
                 daily_temp['Mean'] = float(self.temp_list[2])
                 self.weather[self.date_string] = daily_temp
                 self.temp_list.clear()
-        except Exception as e:
-            print(f"WeatherScraper::add_dictionary::{e}")
-
-parsetest = WeatherScraper()
-
-parsetest.scrape_start()
-
-print(parsetest.weather)
+        except Exception:
+            pass
 
